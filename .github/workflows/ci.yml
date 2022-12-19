@@ -1,0 +1,27 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      HUMANITEC_ORG: ${{ secrets.HUMANITEC_ORG }}
+      HUMANITEC_TOKEN: ${{ secrets.HUMANITEC_TOKEN }}
+      HUMANITEC_APP: ${{ secrets.HUMANITEC_APP }}
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run package

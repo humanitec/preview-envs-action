@@ -1,0 +1,30 @@
+name: 'Dynamic Preview Environments using Humanitec'
+description: 'Dynamically create & deleted preview environments using Humanitec'
+inputs:
+  humanitec-token:
+    description: 'API token '
+    required: true
+  humanitec-org:
+    description: 'The name of the Humanitec org'
+    required: true
+  humanitec-app:
+    description: 'The name of the Humanitec app'
+    required: true
+  action:
+    description: 'The action to be performed (create or delete)'
+    required: true
+  github-token:
+    description: 'GitHub token'
+    required: false
+  base-env:
+    description: 'The source environment id.'
+    required: false
+  humanitec-api:
+    description: 'Allows the default humanitec api to be overridden for testing.'
+    required: false
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+branding:
+  icon: 'check-square'
+  color: 'blue'
