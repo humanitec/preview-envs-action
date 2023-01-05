@@ -27,6 +27,7 @@
   "dependencies": {
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.1.1",
+    "@humanitec/autogen": "^0.0.2",
     "axios": "^1.2.1"
   },
   "private": true

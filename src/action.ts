@@ -1,8 +1,8 @@
 import {getOctokit, context} from '@actions/github';
 import {getInput} from '@actions/core';
 
-import {createApiClient, HumanitecClient} from './humanitec';
 import {branchNameToEnvId} from './utils';
+import {createApiClient, HumanitecClient} from './humanitec';
 
 async function createEnvironment(input: ActionInput): Promise<void> {
   const {orgId, appId, envId, context, octokit, humClient, branchName} = input;
@@ -90,7 +90,6 @@ interface ActionInput {
   humClient: HumanitecClient;
   branchName: string;
 }
-
 
 /**
  * Performs the GitHub action.

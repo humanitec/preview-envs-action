@@ -1,30 +1,18 @@
-import {
-  AutomationRuleApi,
-  Configuration,
-  ConfigurationParameters,
-  EnvironmentApi,
-} from './generated';
+import {apiConfig, AutomationRuleApi, EnvironmentApi} from '@humanitec/autogen';
 
 export interface HumanitecClient {
   environmentApi: EnvironmentApi
   automationRuleApi: AutomationRuleApi
 }
 
-
 export const createApiClient = (basePath: string, token: string) => {
-  const configParams: ConfigurationParameters = {
-    basePath: `https://${basePath}`,
-    baseOptions: {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    },
-  };
-
-  const apiConfig = new Configuration(configParams);
+  const config = apiConfig({
+    token,
+    apiHost: `https://${basePath}`,
+  });
 
   return {
-    environmentApi: new EnvironmentApi(apiConfig),
-    automationRuleApi: new AutomationRuleApi(apiConfig),
+    environmentApi: new EnvironmentApi(config),
+    automationRuleApi: new AutomationRuleApi(config),
   };
 };
