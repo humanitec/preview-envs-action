@@ -2,7 +2,7 @@ name: 'Dynamic Preview Environments using Humanitec'
 description: 'Dynamically create & deleted preview environments using Humanitec'
 inputs:
   humanitec-token:
-    description: 'API token '
+    description: 'Humanitec API token'
     required: true
   humanitec-org:
     description: 'The name of the Humanitec org'

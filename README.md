@@ -4,15 +4,21 @@ This GitHub action allows you to dynamically create & deleted preview environmen
 
 ## Inputs
 
-* TBD
+* `humanitec-token` (required), Humanitec API token
+* `humanitec-org` (required), The name of the Humanitec org
+* `humanitec-app` (required), The name of the Humanitec app
+* `action`  (required), The action to be performed (create or delete)
+* `base-env` (optional), The source environment id, "development" by default.
+* `humanitec-api` (optional), Use a different Humanitec API host.
+* `github-token` (optional), GitHub token used for commenting inside the PR.
 
 ## Outputs
 
-* TBD
+* None
 
 ## Example usage
 
-Create preview environments when a PR is created and remove it again on merge.
+Create preview environments when a PR is created and remove it again once the PR is closed.
 
 `.github/workflows/create-preview-env.yml`
 
