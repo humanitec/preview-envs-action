@@ -11,6 +11,7 @@ describe('utils', () => {
     ];
 
     for (const tc of testCases) {
+      // eslint-disable-next-line jest/valid-title
       test(tc.name, async () => {
         expect(branchNameToEnvId('dev', tc.input)).toEqual(tc.expectedOutput);
       });

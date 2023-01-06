@@ -40,11 +40,11 @@ describe('action', () => {
     try {
       setInput('action', 'create');
       await runAction();
-      expect(process.exitCode).toBeFalsy;
+      expect(process.exitCode).toBeFalsy();
 
       setInput('action', 'delete');
       await runAction();
-      expect(process.exitCode).toBeFalsy;
+      expect(process.exitCode).toBeFalsy();
     } catch (e) {
       console.log(e);
       throw new Error('failed');
