@@ -42,6 +42,10 @@ describe('action', () => {
       await runAction();
       expect(process.exitCode).toBeFalsy();
 
+      setInput('action', 'notify');
+      await runAction();
+      expect(process.exitCode).toBeFalsy();
+
       setInput('action', 'delete');
       await runAction();
       expect(process.exitCode).toBeFalsy();

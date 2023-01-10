@@ -9,7 +9,7 @@ This GitHub action allows you to dynamically create & deleted preview environmen
 * `humanitec-app` (required), The name of the Humanitec app
 * `action`  (required), The action to be performed (create or delete)
 * `base-env` (optional), The source environment id, "development" by default.
-* `image` (optional), The image of the workload that should be deployed, "registry.humanitec.io/${humanitec-org}/${humanitec-app}" by default.
+* `image` (optional), The image of the workload that should be deployed, "registry.humanitec.io/${humanitec-org}/${GITHUB_REPOSITORY}" by default.
 * `humanitec-api` (optional), Use a different Humanitec API host.
 * `github-token` (optional), GitHub token used for commenting inside the PR.
 
@@ -68,6 +68,16 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+Add the following snipped after your CI step notifying Humanitec about the newly pushed image (commonly the build-push-to-humanitec step):
+
+```yaml
+- uses: humanitec/preview-envs-action@main
+  with:
+    humanitec-org: my-org
+    humanitec-app: my-app
+    action: notify
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+```
 
 ## Development
 
