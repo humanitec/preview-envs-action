@@ -46687,8 +46687,8 @@ const humanitec_1 = __nccwpck_require__(9857);
 async function createEnvironment(input) {
     const { orgId, appId, envId, context, octokit, humClient, branchName } = input;
     const baseEnvId = (0, core_1.getInput)('base-env') || 'development';
+    const image = (0, core_1.getInput)('image') || `registry.humanitec.io/${orgId}/${appId}`;
     const ENV_PATH = `/orgs/${orgId}/apps/${appId}/envs/${envId}`;
-    const IMAGE_ID = `registry.humanitec.io/${orgId}/${appId}`;
     const baseEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsEnvIdGet(orgId, appId, baseEnvId);
     if (baseEnvRes.status != 200) {
         throw new Error(`Unexpected response fetching env: ${baseEnvRes.status}, ${baseEnvRes.data}`);
@@ -46708,7 +46708,7 @@ async function createEnvironment(input) {
     }
     const createRuleRes = await humClient.automationRuleApi.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost(orgId, appId, envId, {
         active: true,
-        artefacts_filter: [IMAGE_ID],
+        artefacts_filter: [image],
         type: 'update',
         match_ref: `refs/heads/${branchName}`,
     });

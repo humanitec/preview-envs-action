@@ -8,9 +8,9 @@ async function createEnvironment(input: ActionInput): Promise<void> {
   const {orgId, appId, envId, context, octokit, humClient, branchName} = input;
 
   const baseEnvId = getInput('base-env') || 'development';
+  const image = getInput('image') || `registry.humanitec.io/${orgId}/${appId}`;
 
   const ENV_PATH = `/orgs/${orgId}/apps/${appId}/envs/${envId}`;
-  const IMAGE_ID = `registry.humanitec.io/${orgId}/${appId}`;
 
   const baseEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsEnvIdGet(orgId, appId, baseEnvId);
   if (baseEnvRes.status != 200) {
@@ -43,7 +43,7 @@ async function createEnvironment(input: ActionInput): Promise<void> {
     envId,
     {
       active: true,
-      artefacts_filter: [IMAGE_ID],
+      artefacts_filter: [image],
       type: 'update',
       match_ref: `refs/heads/${branchName}`,
     },

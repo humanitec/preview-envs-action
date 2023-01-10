@@ -9,6 +9,7 @@ This GitHub action allows you to dynamically create & deleted preview environmen
 * `humanitec-app` (required), The name of the Humanitec app
 * `action`  (required), The action to be performed (create or delete)
 * `base-env` (optional), The source environment id, "development" by default.
+* `image` (optional), The image of the workload that should be deployed, "registry.humanitec.io/${humanitec-org}/${humanitec-app}" by default.
 * `humanitec-api` (optional), Use a different Humanitec API host.
 * `github-token` (optional), GitHub token used for commenting inside the PR.
 

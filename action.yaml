@@ -19,6 +19,9 @@ inputs:
   base-env:
     description: 'The source environment id.'
     required: false
+  image:
+    description: 'The image of the workload that should be deployed (by default registry.humanitec.io/${humanitec-org}/${humanitec-app}).'
+    required: false
   humanitec-api:
     description: 'Allows the default humanitec api to be overridden for testing.'
     required: false
