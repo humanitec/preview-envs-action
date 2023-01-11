@@ -46826,13 +46826,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const action_1 = __nccwpck_require__(7672);
+const axios_1 = __importDefault(__nccwpck_require__(8757));
 (0, action_1.runAction)().catch((e) => {
     core.error('Action failed');
-    core.error(`${e.name} ${e.message}`);
     core.setFailed(`${e.name} ${e.message}`);
+    if (axios_1.default.isAxiosError(e)) {
+        if (e.config) {
+            core.error(`method: ${e.config.method}`);
+            core.error(`request: ${e.config.url}`);
+        }
+        if (e.response) {
+            core.error(`response: ${JSON.stringify(e.response.data)}`);
+        }
+    }
 });
 
 
@@ -46845,10 +46857,13 @@ const action_1 = __nccwpck_require__(7672);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.branchNameToEnvId = void 0;
+const ENV_ID_LIMIT = 20; // Only 20 chars are supported
 const branchNameToEnvId = (prefix, branchName) => {
     branchName = branchName.replace(/[^a-z0-9-]+/g, '-'); // Remove unsupported chars
     branchName = branchName.replace(/^-+/, '').replace(/-+$/, ''); // Remove leading and trailing hyphens
-    return `${prefix}-${branchName}`.substring(0, 20); // Only 20 chars are supported
+    const idLimit = ENV_ID_LIMIT - `${prefix}-`.length;
+    // Return last as often common prefixes like "feat" or "dependabot" are used.
+    return `${prefix}-${branchName.slice(-idLimit)}`;
 };
 exports.branchNameToEnvId = branchNameToEnvId;
 
