@@ -20,10 +20,13 @@ inputs:
     description: 'The source environment id.'
     required: false
   image:
-    description: 'The image of the workload that should be deployed (by default registry.humanitec.io/${humanitec-org}/${humanitec-app}).'
+    description: 'The image of the workload that should be deployed, "registry.humanitec.io/${humanitec-org}/${GITHUB_REPOSITORY}" by default.'
     required: false
   humanitec-api:
     description: 'Allows the default humanitec api to be overridden for testing.'
+    required: false
+  environment-url-template:
+    description: 'Provide a custom mustache template for the environment url, "https://app.humanitec.io/orgs/{{orgId}}/apps/{{appId}}/envs/{{envId}}" by default.'
     required: false
 runs:
   using: 'node16'
