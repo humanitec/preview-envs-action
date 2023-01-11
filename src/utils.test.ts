@@ -6,7 +6,7 @@ describe('utils', () => {
     const testCases = [
       {name: 'basic', input: 'basic', expectedOutput: 'dev-basic'},
       {name: 'long', input: 'a'.repeat(100), expectedOutput: 'dev-aaaaaaaaaaaaaaaa'},
-      {name: 'special', input: 'some/feature_branch', expectedOutput: 'dev-some-feature-bra'},
+      {name: 'special', input: 'feature/new_function', expectedOutput: 'dev-ure-new-function'},
       {name: 'hyphen', input: '-name_-', expectedOutput: 'dev-name'},
     ];
 
