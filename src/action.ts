@@ -1,5 +1,6 @@
 import {getOctokit, context} from '@actions/github';
 import {getInput} from '@actions/core';
+import {render} from 'mustache';
 
 import {branchNameToEnvId} from './utils';
 import {createApiClient, HumanitecClient} from './humanitec';
@@ -7,7 +8,7 @@ import {createApiClient, HumanitecClient} from './humanitec';
 type octokit = ReturnType<typeof getOctokit>
 
 async function createEnvironment(input: ActionInput): Promise<void> {
-  const {orgId, appId, envId, context, octokit, humClient, branchName, environmentUrl} = input;
+  const {orgId, appId, envId, context, octokit, humClient, branchName, environmentUrl, webAppUrl} = input;
 
   const baseEnvId = getInput('base-env') || 'development';
   const imageName = (process.env.GITHUB_REPOSITORY || '').replace(/.*\//, '');
@@ -85,6 +86,7 @@ async function createEnvironment(input: ActionInput): Promise<void> {
       auto_merge: false,
       state: 'pending',
       environment_url: environmentUrl,
+      log_url: webAppUrl,
     });
   }
 }
@@ -104,7 +106,7 @@ async function findLatestDeployment(octokit: octokit, envId: string) {
 }
 
 async function notifyDeploy(input: NotifyInput): Promise<void> {
-  const {envId, context, octokit, environmentUrl} = input;
+  const {envId, context, octokit, environmentUrl, webAppUrl} = input;
 
   if (octokit) {
     const latestDeployment = await findLatestDeployment(octokit, envId);
@@ -119,6 +121,7 @@ async function notifyDeploy(input: NotifyInput): Promise<void> {
       deployment_id: latestDeployment.id,
       state: 'success',
       environment_url: environmentUrl,
+      log_url: webAppUrl,
     });
   }
 }
@@ -158,6 +161,7 @@ interface ActionInput {
   humClient: HumanitecClient;
   branchName: string;
   environmentUrl: string
+  webAppUrl: string
 }
 
 type NotifyInput = Omit<ActionInput, 'humClient' | 'branchName'>
@@ -183,17 +187,24 @@ export async function runAction(): Promise<void> {
 
   const envId = branchNameToEnvId('dev', branchName);
   const envPath = `/orgs/${orgId}/apps/${appId}/envs/${envId}`;
-  const environmentUrl = `https://app.humanitec.io${envPath}`;
+  const webAppUrl = `https://app.humanitec.io${envPath}`;
+
+  const environmentUrlTemplate = getInput('environment-url-template');
+
+  let environmentUrl = webAppUrl;
+  if (environmentUrlTemplate) {
+    environmentUrl = render(environmentUrlTemplate, {envId, appId, orgId, branchName});
+  }
 
   if (action == 'notify') {
-    return notifyDeploy({orgId, appId, envId, context, octokit, environmentUrl});
+    return notifyDeploy({orgId, appId, envId, context, octokit, webAppUrl, environmentUrl});
   }
 
   const token = getInput('humanitec-token', {required: true});
   const apiHost = getInput('humanitec-api') || 'api.humanitec.io';
   const humClient = createApiClient(apiHost, token);
 
-  const input = {orgId, appId, envId, context, octokit, humClient, branchName, environmentUrl};
+  const input = {orgId, appId, envId, context, octokit, humClient, branchName, webAppUrl, environmentUrl};
 
   if (action == 'create') {
     return createEnvironment(input);
