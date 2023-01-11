@@ -60,35 +60,37 @@ async function createEnvironment(input: ActionInput): Promise<void> {
 
   console.log(`Created auto-deployment rule for ${matchRef} and image ${image}`);
 
-  if (octokit) {
-    const deployment = await octokit.rest.repos.createDeployment({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      ref: branchName,
-      auto_merge: false,
-      environment: envId,
-      transient_environment: true,
-      required_contexts: [],
-    });
-
-    if (!('id' in deployment.data)) {
-      throw new Error(`Creating deployment failed ${deployment.data.message}`);
-    }
-
-    const deploymentId = deployment.data.id;
-    console.log(`Created github deployment ${deploymentId}`);
-
-    await octokit.rest.repos.createDeploymentStatus({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      deployment_id: deploymentId,
-      ref: branchName,
-      auto_merge: false,
-      state: 'pending',
-      environment_url: environmentUrl,
-      log_url: webAppUrl,
-    });
+  if (!octokit) {
+    return;
   }
+
+  const deployment = await octokit.rest.repos.createDeployment({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    ref: branchName,
+    auto_merge: false,
+    environment: envId,
+    transient_environment: true,
+    required_contexts: [],
+  });
+
+  if (!('id' in deployment.data)) {
+    throw new Error(`Creating deployment failed ${deployment.data.message}`);
+  }
+
+  const deploymentId = deployment.data.id;
+  console.log(`Created github deployment ${deploymentId}`);
+
+  await octokit.rest.repos.createDeploymentStatus({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    deployment_id: deploymentId,
+    ref: branchName,
+    auto_merge: false,
+    state: 'pending',
+    environment_url: environmentUrl,
+    log_url: webAppUrl,
+  });
 }
 
 async function findLatestDeployment(octokit: octokit, envId: string) {
@@ -106,24 +108,52 @@ async function findLatestDeployment(octokit: octokit, envId: string) {
 }
 
 async function notifyDeploy(input: NotifyInput): Promise<void> {
-  const {envId, context, octokit, environmentUrl, webAppUrl} = input;
+  const {envId, context, octokit, environmentUrl, webAppUrl, branchName} = input;
 
-  if (octokit) {
-    const latestDeployment = await findLatestDeployment(octokit, envId);
-    if (!latestDeployment) {
-      console.log('No deployment found');
-      return;
-    }
+  if (!octokit) {
+    return;
+  }
 
-    await octokit.rest.repos.createDeploymentStatus({
+  const latestDeployment = await findLatestDeployment(octokit, envId);
+  if (!latestDeployment) {
+    console.log('No deployment found');
+    return;
+  }
+
+  let deploymentId = latestDeployment.id;
+
+  const currentSHA = process.env.GITHUB_SHA;
+  if (latestDeployment.sha !== currentSHA) {
+    console.log(`Current deployment sha ${latestDeployment.sha} is not matching commit sha ${currentSHA}`);
+    console.log(`Creating new deployment`);
+    // Create another deployment as otherwise github marks the current one as outdated
+    const deployment = await octokit.rest.repos.createDeployment({
       owner: context.repo.owner,
       repo: context.repo.repo,
-      deployment_id: latestDeployment.id,
-      state: 'success',
-      environment_url: environmentUrl,
-      log_url: webAppUrl,
+      ref: branchName,
+      auto_merge: false,
+      environment: envId,
+      transient_environment: true,
+      required_contexts: [],
     });
+
+    if (!('id' in deployment.data)) {
+      throw new Error(`Creating deployment failed ${deployment.data.message}`);
+    }
+
+    deploymentId = deployment.data.id;
+
+    console.log(`Created github deployment ${deploymentId}`);
   }
+
+  await octokit.rest.repos.createDeploymentStatus({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    deployment_id: deploymentId,
+    state: 'success',
+    environment_url: environmentUrl,
+    log_url: webAppUrl,
+  });
 }
 
 async function deleteEnvironment(input: ActionInput): Promise<void> {
@@ -136,20 +166,22 @@ async function deleteEnvironment(input: ActionInput): Promise<void> {
 
   console.log(`Deleted environment: ${envId}`);
 
-  if (octokit) {
-    const latestDeployment = await findLatestDeployment(octokit, envId);
-    if (!latestDeployment) {
-      console.log('No deployment found');
-      return;
-    }
-
-    await octokit.rest.repos.createDeploymentStatus({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      deployment_id: latestDeployment.id,
-      state: 'inactive',
-    });
+  if (!octokit) {
+    return;
   }
+
+  const latestDeployment = await findLatestDeployment(octokit, envId);
+  if (!latestDeployment) {
+    console.log('No deployment found');
+    return;
+  }
+
+  await octokit.rest.repos.createDeploymentStatus({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    deployment_id: latestDeployment.id,
+    state: 'inactive',
+  });
 }
 
 interface ActionInput {
@@ -164,7 +196,7 @@ interface ActionInput {
   webAppUrl: string
 }
 
-type NotifyInput = Omit<ActionInput, 'humClient' | 'branchName'>
+type NotifyInput = Omit<ActionInput, 'humClient'>
 
 /**
  * Performs the GitHub action.
@@ -191,25 +223,26 @@ export async function runAction(): Promise<void> {
 
   const environmentUrlTemplate = getInput('environment-url-template');
 
+  const templateParams = {envId, appId, orgId, branchName};
   let environmentUrl = webAppUrl;
   if (environmentUrlTemplate) {
-    environmentUrl = render(environmentUrlTemplate, {envId, appId, orgId, branchName});
+    environmentUrl = render(environmentUrlTemplate, templateParams);
   }
 
+  const notifyParams: NotifyInput = {...templateParams, context, octokit, webAppUrl, environmentUrl};
   if (action == 'notify') {
-    return notifyDeploy({orgId, appId, envId, context, octokit, webAppUrl, environmentUrl});
+    return notifyDeploy(notifyParams);
   }
 
   const token = getInput('humanitec-token', {required: true});
   const apiHost = getInput('humanitec-api') || 'api.humanitec.io';
   const humClient = createApiClient(apiHost, token);
 
-  const input = {orgId, appId, envId, context, octokit, humClient, branchName, webAppUrl, environmentUrl};
-
+  const actionParams: ActionInput = {...notifyParams, humClient};
   if (action == 'create') {
-    return createEnvironment(input);
+    return createEnvironment(actionParams);
   } else if (action == 'delete') {
-    return deleteEnvironment(input);
+    return deleteEnvironment(actionParams);
   } else {
     throw new Error(`Unknown action: ${action}`);
   }
