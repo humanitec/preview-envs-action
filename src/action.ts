@@ -15,7 +15,7 @@ async function createEnvironment(input: ActionInput): Promise<void> {
   const image = getInput('image') || `registry.humanitec.io/${orgId}/${imageName}`;
 
 
-  const baseEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsEnvIdGet(orgId, appId, baseEnvId);
+  const baseEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdGet(orgId, appId, baseEnvId);
   if (baseEnvRes.status != 200) {
     throw new Error(`Unexpected response fetching env: ${baseEnvRes.status}, ${baseEnvRes.data}`);
   }
@@ -26,7 +26,7 @@ async function createEnvironment(input: ActionInput): Promise<void> {
     throw new Error(`Environment ${baseEnv.id} has never been deployed`);
   }
 
-  const createEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsPost(
+  const createEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsPost(
     orgId,
     appId,
     {
@@ -43,7 +43,7 @@ async function createEnvironment(input: ActionInput): Promise<void> {
   console.log(`Created environment: ${envId}, ${environmentUrl}`);
 
   const matchRef =`refs/heads/${branchName}`;
-  const createRuleRes = await humClient.automationRuleApi.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost(
+  const createRuleRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost(
     orgId,
     appId,
     envId,
@@ -159,7 +159,7 @@ async function notifyDeploy(input: NotifyInput): Promise<void> {
 async function deleteEnvironment(input: ActionInput): Promise<void> {
   const {orgId, appId, envId, context, octokit, humClient} = input;
 
-  const delEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsEnvIdDelete(orgId, appId, envId);
+  const delEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdDelete(orgId, appId, envId);
   if (delEnvRes.status != 204 && delEnvRes.status != 404) {
     throw new Error(`Unexpected response creating rule: ${delEnvRes.status}, ${delEnvRes.data}`);
   }

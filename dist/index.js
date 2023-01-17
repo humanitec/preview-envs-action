@@ -35677,6 +35677,18 @@ exports.apiConfig = void 0;
 const configuration_1 = __nccwpck_require__(8874);
 __exportStar(__nccwpck_require__(7770), exports);
 const defaultAPIHost = 'https://api.humanitec.com';
+const sdk = 'humanitec-ts-autogen';
+const sdkVersion = 'latest';
+const humanitecUserAgentHeader = ({ sdk, app }) => {
+    const elements = [];
+    if (sdk) {
+        elements.push(`sdk ${sdk}`);
+    }
+    if (app) {
+        elements.push(`app ${app}`);
+    }
+    return elements.join('; ');
+};
 const apiConfig = (config) => {
     if (!config.token) {
         throw new Error('token needs to provided');
@@ -35686,6 +35698,7 @@ const apiConfig = (config) => {
         baseOptions: {
             headers: {
                 'Authorization': `Bearer ${config.token}`,
+                'Humanitec-User-Agent': humanitecUserAgentHeader({ app: config.internalApp, sdk: `${sdk}/${sdkVersion}` })
             },
         },
     });
@@ -47468,7 +47481,7 @@ async function createEnvironment(input) {
     const baseEnvId = (0, core_1.getInput)('base-env') || 'development';
     const imageName = (process.env.GITHUB_REPOSITORY || '').replace(/.*\//, '');
     const image = (0, core_1.getInput)('image') || `registry.humanitec.io/${orgId}/${imageName}`;
-    const baseEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsEnvIdGet(orgId, appId, baseEnvId);
+    const baseEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdGet(orgId, appId, baseEnvId);
     if (baseEnvRes.status != 200) {
         throw new Error(`Unexpected response fetching env: ${baseEnvRes.status}, ${baseEnvRes.data}`);
     }
@@ -47476,7 +47489,7 @@ async function createEnvironment(input) {
     if (!baseEnv.last_deploy) {
         throw new Error(`Environment ${baseEnv.id} has never been deployed`);
     }
-    const createEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsPost(orgId, appId, {
+    const createEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsPost(orgId, appId, {
         from_deploy_id: baseEnv.last_deploy.id,
         id: envId,
         name: envId,
@@ -47487,7 +47500,7 @@ async function createEnvironment(input) {
     }
     console.log(`Created environment: ${envId}, ${environmentUrl}`);
     const matchRef = `refs/heads/${branchName}`;
-    const createRuleRes = await humClient.automationRuleApi.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost(orgId, appId, envId, {
+    const createRuleRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost(orgId, appId, envId, {
         active: true,
         artefacts_filter: [image],
         type: 'update',
@@ -47578,7 +47591,7 @@ async function notifyDeploy(input) {
 }
 async function deleteEnvironment(input) {
     const { orgId, appId, envId, context, octokit, humClient } = input;
-    const delEnvRes = await humClient.environmentApi.orgsOrgIdAppsAppIdEnvsEnvIdDelete(orgId, appId, envId);
+    const delEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdDelete(orgId, appId, envId);
     if (delEnvRes.status != 204 && delEnvRes.status != 404) {
         throw new Error(`Unexpected response creating rule: ${delEnvRes.status}, ${delEnvRes.data}`);
     }
@@ -47658,11 +47671,9 @@ const createApiClient = (basePath, token) => {
     const config = (0, autogen_1.apiConfig)({
         token,
         apiHost: `https://${basePath}`,
+        internalApp: 'preview-envs-action/latest',
     });
-    return {
-        environmentApi: new autogen_1.EnvironmentApi(config),
-        automationRuleApi: new autogen_1.AutomationRuleApi(config),
-    };
+    return new autogen_1.PublicApi(config);
 };
 exports.createApiClient = createApiClient;
 

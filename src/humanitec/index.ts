@@ -1,18 +1,13 @@
-import {apiConfig, AutomationRuleApi, EnvironmentApi} from '@humanitec/autogen';
+import {apiConfig, PublicApi} from '@humanitec/autogen';
 
-export interface HumanitecClient {
-  environmentApi: EnvironmentApi
-  automationRuleApi: AutomationRuleApi
-}
+export type HumanitecClient = PublicApi
 
-export const createApiClient = (basePath: string, token: string) => {
+export const createApiClient = (basePath: string, token: string): PublicApi => {
   const config = apiConfig({
     token,
     apiHost: `https://${basePath}`,
+    internalApp: 'preview-envs-action/latest',
   });
 
-  return {
-    environmentApi: new EnvironmentApi(config),
-    automationRuleApi: new AutomationRuleApi(config),
-  };
+  return new PublicApi(config);
 };
