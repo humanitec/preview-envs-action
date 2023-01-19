@@ -29,7 +29,7 @@
   "dependencies": {
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.1.1",
-    "@humanitec/autogen": "^0.0.3",
+    "@humanitec/autogen": "^0.0.4",
     "axios": "^1.2.1",
     "mustache": "^4.2.0"
   },

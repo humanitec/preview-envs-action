@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: humanitec/preview-envs-action@main
+      - uses: humanitec/preview-envs-action@v1
         with:
           humanitec-token: ${{ secrets.HUMANITEC_TOKEN }}
           humanitec-org: my-org
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: humanitec/preview-envs-action@main
+      - uses: humanitec/preview-envs-action@v1
         with:
           humanitec-token: ${{ secrets.HUMANITEC_TOKEN }}
           humanitec-org: my-org
@@ -72,7 +72,7 @@ jobs:
 Add the following snipped after your CI step notifying Humanitec about the newly pushed image (commonly the build-push-to-humanitec step):
 
 ```yaml
-- uses: humanitec/preview-envs-action@main
+- uses: humanitec/preview-envs-action@v1
   with:
     humanitec-org: my-org
     humanitec-app: my-app
