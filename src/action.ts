@@ -15,7 +15,11 @@ async function createEnvironment(input: ActionInput): Promise<void> {
   const image = getInput('image') || `registry.humanitec.io/${orgId}/${imageName}`;
 
 
-  const baseEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdGet(orgId, appId, baseEnvId);
+  const baseEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdGet({
+    orgId,
+    appId,
+    envId: baseEnvId,
+  });
   if (baseEnvRes.status != 200) {
     throw new Error(`Unexpected response fetching env: ${baseEnvRes.status}, ${baseEnvRes.data}`);
   }
@@ -27,13 +31,15 @@ async function createEnvironment(input: ActionInput): Promise<void> {
   }
 
   const createEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsPost(
-    orgId,
-    appId,
     {
-      from_deploy_id: baseEnv.last_deploy.id,
-      id: envId,
-      name: envId,
-      type: baseEnv.type,
+      orgId,
+      appId,
+      environmentDefinitionRequest: {
+        from_deploy_id: baseEnv.last_deploy.id,
+        id: envId,
+        name: envId,
+        type: baseEnv.type,
+      },
     },
   );
   if (createEnvRes.status != 201) {
@@ -43,17 +49,17 @@ async function createEnvironment(input: ActionInput): Promise<void> {
   console.log(`Created environment: ${envId}, ${environmentUrl}`);
 
   const matchRef =`refs/heads/${branchName}`;
-  const createRuleRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost(
+  const createRuleRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost({
     orgId,
     appId,
     envId,
-    {
+    automationRuleRequest: {
       active: true,
       artefacts_filter: [image],
       type: 'update',
       match_ref: matchRef,
     },
-  );
+  });
   if (createRuleRes.status != 201) {
     throw new Error(`Unexpected response creating rule: ${baseEnvRes.status}, ${baseEnvRes.data}`);
   }
@@ -159,7 +165,9 @@ async function notifyDeploy(input: NotifyInput): Promise<void> {
 async function deleteEnvironment(input: ActionInput): Promise<void> {
   const {orgId, appId, envId, context, octokit, humClient} = input;
 
-  const delEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdDelete(orgId, appId, envId);
+  const delEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdDelete({
+    orgId, appId, envId,
+  });
   if (delEnvRes.status != 204 && delEnvRes.status != 404) {
     throw new Error(`Unexpected response creating rule: ${delEnvRes.status}, ${delEnvRes.data}`);
   }
