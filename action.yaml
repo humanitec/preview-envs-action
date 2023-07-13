@@ -11,7 +11,7 @@ inputs:
     description: 'The name of the Humanitec app'
     required: true
   action:
-    description: 'The action to be performed (create or delete)'
+    description: 'The action to be performed (create, notify or delete)'
     required: true
   github-token:
     description: 'GitHub token'
