@@ -28,6 +28,9 @@ inputs:
   environment-url-template:
     description: 'Provide a custom mustache template for the environment url, "https://app.humanitec.io/orgs/{{orgId}}/apps/{{appId}}/envs/{{envId}}" by default.'
     required: false
+outputs:
+  environmentUrl:
+    description: 'URL of environment to run playwright test against'
 runs:
   using: 'node16'
   main: 'dist/index.js'
