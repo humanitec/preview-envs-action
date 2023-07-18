@@ -30,7 +30,7 @@ inputs:
     required: false
 outputs:
   environmentUrl:
-    description: 'URL of environment to run playwright test against'
+    description: 'URL where the running application can be accessed'
 runs:
   using: 'node16'
   main: 'dist/index.js'
