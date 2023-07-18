@@ -236,7 +236,7 @@ export async function runAction(): Promise<void> {
   if (environmentUrlTemplate) {
     environmentUrl = render(environmentUrlTemplate, templateParams);
   }
-  setOutput('environmentUrl', environmentUrl);
+  setOutput('environment-url', environmentUrl);
 
   const notifyParams: NotifyInput = {...templateParams, context, octokit, webAppUrl, environmentUrl};
   if (action == 'notify') {
