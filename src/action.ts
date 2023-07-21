@@ -236,7 +236,8 @@ export async function runAction(): Promise<void> {
   if (environmentUrlTemplate) {
     environmentUrl = render(environmentUrlTemplate, templateParams);
   }
-  setOutput('environment-url', environmentUrl);
+  // TODO: setOutput('environment-url', environmentUrl);
+  setOutput('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
 
   const notifyParams: NotifyInput = {...templateParams, context, octokit, webAppUrl, environmentUrl};
   if (action == 'notify') {
