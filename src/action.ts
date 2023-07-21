@@ -1,5 +1,5 @@
 import {getOctokit, context} from '@actions/github';
-import {getInput, setOutput} from '@actions/core';
+import {getInput, setOutput, info} from '@actions/core';
 import {render} from 'mustache';
 
 import {branchNameToEnvId} from './utils';
@@ -237,6 +237,7 @@ export async function runAction(): Promise<void> {
     environmentUrl = render(environmentUrlTemplate, templateParams);
   }
   // TODO: setOutput('environment-url', environmentUrl);
+  info('Use environment-url: https://dev-02-ci-test-on-pr-app.humanitec.io/');
   setOutput('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
 
   const notifyParams: NotifyInput = {...templateParams, context, octokit, webAppUrl, environmentUrl};
