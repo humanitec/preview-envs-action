@@ -29,7 +29,7 @@ inputs:
     description: 'Provide a custom mustache template for the environment url, "https://app.humanitec.io/orgs/{{orgId}}/apps/{{appId}}/envs/{{envId}}" by default.'
     required: false
 outputs:
-  environment-urls:
+  environment-url:
     description: 'URL where the running application can be accessed'
 runs:
   using: 'node16'
