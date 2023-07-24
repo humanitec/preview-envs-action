@@ -239,7 +239,7 @@ export async function runAction(): Promise<void> {
   // TODO: setOutput('environment-url', environmentUrl);
   warning('Use environment-url: https://dev-02-ci-test-on-pr-app.humanitec.io/');
   setOutput('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
-  exportVriable('HUMANITEC_PREVIEW_URL', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
+  exportVariable('HUMANITEC_PREVIEW_URL', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
 
   const notifyParams: NotifyInput = {...templateParams, context, octokit, webAppUrl, environmentUrl};
   if (action == 'notify') {
