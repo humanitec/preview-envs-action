@@ -33379,7 +33379,9 @@ async function runAction() {
     }
     (0, core_1.info)('Using environment: ' + environmentUrl);
     (0, core_1.setOutput)('environment-url', environmentUrl);
-    // setOutput('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
+    if (action == 'get-environment-url') {
+        return;
+    }
     const notifyParams = { ...templateParams, context: github_1.context, octokit, webAppUrl, environmentUrl };
     if (action == 'notify') {
         return notifyDeploy(notifyParams);

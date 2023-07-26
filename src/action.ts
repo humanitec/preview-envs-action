@@ -238,7 +238,9 @@ export async function runAction(): Promise<void> {
   }
   info('Using environment: '+environmentUrl);
   setOutput('environment-url', environmentUrl);
-  // setOutput('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
+  if (action == 'get-environment-url') {
+    return;
+  }
 
   const notifyParams: NotifyInput = {...templateParams, context, octokit, webAppUrl, environmentUrl};
   if (action == 'notify') {
