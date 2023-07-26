@@ -33377,10 +33377,8 @@ async function runAction() {
     if (environmentUrlTemplate) {
         environmentUrl = (0, mustache_1.render)(environmentUrlTemplate, templateParams);
     }
-    // TODO: setOutput('environment-url', environmentUrl);
-    (0, core_1.warning)('Use environment-url: https://dev-02-ci-test-on-pr-app.humanitec.io/');
-    (0, core_1.setOutput)('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
-    (0, core_1.exportVariable)('HUMANITEC_PREVIEW_URL', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
+    (0, core_1.setOutput)('environment-url', environmentUrl);
+    // setOutput('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
     const notifyParams = { ...templateParams, context: github_1.context, octokit, webAppUrl, environmentUrl };
     if (action == 'notify') {
         return notifyDeploy(notifyParams);
