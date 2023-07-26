@@ -1,5 +1,5 @@
 import {getOctokit, context} from '@actions/github';
-import {getInput, setOutput} from '@actions/core';
+import {getInput, setOutput, info} from '@actions/core';
 import {render} from 'mustache';
 
 import {branchNameToEnvId} from './utils';
@@ -236,6 +236,7 @@ export async function runAction(): Promise<void> {
   if (environmentUrlTemplate) {
     environmentUrl = render(environmentUrlTemplate, templateParams);
   }
+  info('Using environment: '+environmentUrl);
   setOutput('environment-url', environmentUrl);
   // setOutput('environment-url', 'https://dev-02-ci-test-on-pr-app.humanitec.io/');
 
