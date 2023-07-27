@@ -16,7 +16,7 @@ This GitHub action allows you to dynamically create & deleted preview environmen
 
 ## Outputs
 
-* None
+* `environment-url` : Rendered URL of the preview environment
 
 ## Example usage
 
