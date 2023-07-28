@@ -16,9 +16,11 @@ This GitHub action allows you to dynamically create & deleted preview environmen
 
 ## Outputs
 
-* None
+* `environment-url` : Rendered URL of the preview environment
 
 ## Example usage
+
+### Create Preview Environment
 
 Create preview environments when a PR is created and remove it again once the PR is closed.
 
@@ -45,6 +47,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+### Delete Preview Environment
 
 `.github/workflows/delete-preview-env.yml`
 
@@ -68,6 +71,7 @@ jobs:
           action: delete
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
+### Notify Humanitec
 
 Add the following snipped after your CI step notifying Humanitec about the newly pushed image (commonly the build-push-to-humanitec step):
 
@@ -79,6 +83,25 @@ Add the following snipped after your CI step notifying Humanitec about the newly
     action: notify
     github-token: ${{ secrets.GITHUB_TOKEN }}
     environment-url-template: https://dev-{{envId}}.my-domain.app
+```
+
+### Get Preview Environment URL
+
+All actions above return the output parameter `environment-url`. If you just want to retrieve the environment url you can use this step:
+
+```yaml
+- name: Get Preview Environment
+  id: preview-env
+  uses: humanitec/preview-envs-action@mst-wal-7302-test-on-pr
+  with:
+    humanitec-org: humanitec-labs
+    humanitec-app: humanitec-frontend
+    action: get-environment-url
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    environment-url-template: "https://{{envId}}-app.humanitec.io"
+- name: Print preview environment url
+  run: |
+  echo "This is the preview environment url: ${{ steps.preview-env.outputs.environment-url }}"
 ```
 
 ## Development

@@ -33377,6 +33377,11 @@ async function runAction() {
     if (environmentUrlTemplate) {
         environmentUrl = (0, mustache_1.render)(environmentUrlTemplate, templateParams);
     }
+    (0, core_1.info)('Using environment: ' + environmentUrl);
+    (0, core_1.setOutput)('environment-url', environmentUrl);
+    if (action == 'get-environment-url') {
+        return;
+    }
     const notifyParams = { ...templateParams, context: github_1.context, octokit, webAppUrl, environmentUrl };
     if (action == 'notify') {
         return notifyDeploy(notifyParams);
