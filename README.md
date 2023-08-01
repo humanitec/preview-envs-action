@@ -1,22 +1,27 @@
 # Dynamic Preview Environments using Humanitec
 
-This GitHub action allows you to dynamically create & deleted preview environments using Humanitec.
+This GitHub action allows you to dynamically create and deleted preview environments using the Humanitec Platform Orchestrator.
 
 ## Inputs
+
+> **Note**  
+> The preview environment is cloned from the `base-env` specified in the action inputs (defaults to `development` if not specified). 
+> Ensure the source environment id, `base-env`, is up-to-date before creating preview environments, otherwise they may be cloned from an old version.
+
 
 * `humanitec-token` (required), Humanitec API token
 * `humanitec-org` (required), The name of the Humanitec org
 * `humanitec-app` (required), The name of the Humanitec app
 * `action`  (required), The action to be performed (create, notify or delete)
-* `base-env` (optional), The source environment id, "development" by default.
-* `image` (optional), The image of the workload that should be deployed, "registry.humanitec.io/${humanitec-org}/${GITHUB_REPOSITORY}" by default.
-* `environment-url-template` (optional), Provide a custom mustache template for the environment url, "https://app.humanitec.io/orgs/{{orgId}}/apps/{{appId}}/envs/{{envId}}" by default.
+* `base-env` (optional), The source environment id, defaults to `development` if not specified.
+* `image` (optional), The image of the workload that should be deployed, `registry.humanitec.io/${humanitec-org}/${GITHUB_REPOSITORY}` by default.
+* `environment-url-template` (optional), Provide a custom mustache template for the environment url, `https://app.humanitec.io/orgs/{{orgId}}/apps/{{appId}}/envs/{{envId}}` by default.
 * `humanitec-api` (optional), Use a different Humanitec API host.
 * `github-token` (optional), GitHub token used for commenting inside the PR.
 
 ## Outputs
 
-* `environment-url` : Rendered URL of the preview environment
+* `environment-url` : Rendered URL of the preview environment.
 
 ## Example usage
 
