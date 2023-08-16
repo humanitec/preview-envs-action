@@ -1,5 +1,5 @@
 import {getOctokit, context} from '@actions/github';
-import {getInput, setOutput, info} from '@actions/core';
+import {getInput, setOutput, info, getBooleanInput} from '@actions/core';
 import {render} from 'mustache';
 
 import {branchNameToEnvId} from './utils';
@@ -11,6 +11,8 @@ async function createEnvironment(input: ActionInput): Promise<void> {
   const {orgId, appId, envId, context, octokit, humClient, branchName, environmentUrl, webAppUrl} = input;
 
   const baseEnvId = getInput('base-env') || 'development';
+  const createAutomationRule = getBooleanInput('create-automation-rule');
+  console.log('createAutomationRule', createAutomationRule);
   const imageName = (process.env.GITHUB_REPOSITORY || '').replace(/.*\//, '');
   const image = getInput('image') || `registry.humanitec.io/${orgId}/${imageName}`;
 
@@ -48,23 +50,27 @@ async function createEnvironment(input: ActionInput): Promise<void> {
 
   console.log(`Created environment: ${envId}, ${environmentUrl}`);
 
-  const matchRef =`refs/heads/${branchName}`;
-  const createRuleRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost({
-    orgId,
-    appId,
-    envId,
-    automationRuleRequest: {
-      active: true,
-      artefacts_filter: [image],
-      type: 'update',
-      match_ref: matchRef,
-    },
-  });
-  if (createRuleRes.status != 201) {
-    throw new Error(`Unexpected response creating rule: ${baseEnvRes.status}, ${baseEnvRes.data}`);
+
+  if (createAutomationRule) {
+    const matchRef =`refs/heads/${branchName}`;
+    const createRuleRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost({
+      orgId,
+      appId,
+      envId,
+      automationRuleRequest: {
+        active: true,
+        artefacts_filter: [image],
+        type: 'update',
+        match_ref: matchRef,
+      },
+    });
+    if (createRuleRes.status != 201) {
+      throw new Error(`Unexpected response creating rule: ${baseEnvRes.status}, ${baseEnvRes.data}`);
+    }
+
+    console.log(`Created auto-deployment rule for ${matchRef} and image ${image}`);
   }
 
-  console.log(`Created auto-deployment rule for ${matchRef} and image ${image}`);
 
   if (!octokit) {
     return;
@@ -238,6 +244,7 @@ export async function runAction(): Promise<void> {
   }
   info('Using environment: '+environmentUrl);
   setOutput('environment-url', environmentUrl);
+  setOutput('humanitec-env', envId);
   if (action == 'get-environment-url') {
     return;
   }

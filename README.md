@@ -22,6 +22,7 @@ This GitHub action allows you to dynamically create and deleted preview environm
 ## Outputs
 
 * `environment-url` : Rendered URL of the preview environment.
+* `humanitec-env`: Id of the created environment.
 
 ## Example usage
 

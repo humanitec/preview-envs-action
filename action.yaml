@@ -28,9 +28,15 @@ inputs:
   environment-url-template:
     description: 'Provide a custom mustache template for the environment url, "https://app.humanitec.io/orgs/{{orgId}}/apps/{{appId}}/envs/{{envId}}" by default.'
     required: false
+  create-automation-rule:
+    description: 'Automatically create an automation rule for the environment, "true" by default.'
+    required: false
+    default: 'true'
 outputs:
   environment-url:
     description: 'URL where the running application can be accessed'
+  humanitec-env:
+    description: 'The id of the created environment'
 runs:
   using: 'node16'
   main: 'dist/index.js'
