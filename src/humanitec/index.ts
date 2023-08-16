@@ -1,13 +1,18 @@
-import {apiConfig, PublicApi} from '@humanitec/autogen';
+import {APIConfig, apiConfig, PublicApi} from '@humanitec/autogen';
 
 export type HumanitecClient = PublicApi
 
 export const createApiClient = (basePath: string, token: string): PublicApi => {
-  const config = apiConfig({
+  const clientConfig: APIConfig = {
     token,
-    apiHost: `https://${basePath}`,
     internalApp: 'preview-envs-action/latest',
-  });
+  };
+
+  if (basePath) {
+    clientConfig.apiHost = `https://${basePath}`;
+  }
+
+  const config = apiConfig(clientConfig);
 
   return new PublicApi(config);
 };

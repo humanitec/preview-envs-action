@@ -1,6 +1,8 @@
 import {describe, expect, test, beforeEach, afterAll} from '@jest/globals';
 import {runAction} from './action';
 import {randomBytes} from 'crypto';
+import {createApiClient} from './humanitec';
+import {branchNameToEnvId} from './utils';
 
 // Emulate https://github.com/actions/toolkit/blob/819157bf8/packages/core/src/core.ts#L128
 const setInput = (name: string, value: string): void => {
@@ -22,8 +24,11 @@ const appId = ensureEnv('HUMANITEC_APP');
 
 describe('action', () => {
   let branch: string;
+  let humClient: ReturnType<typeof createApiClient>;
 
   beforeEach(async () => {
+    humClient = createApiClient('', token);
+
     setInput('humanitec-token', token);
     setInput('humanitec-org', orgId);
     setInput('humanitec-app', appId);
@@ -38,9 +43,55 @@ describe('action', () => {
 
   test('succeeds', async () => {
     try {
+      setInput('create-automation-rule', 'true');
       setInput('action', 'create');
       await runAction();
       expect(process.exitCode).toBeFalsy();
+
+      // TODO Get from output instead
+      const envId = branchNameToEnvId('dev', branch);
+
+      const listRules = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesGet({
+        orgId,
+        appId,
+        envId,
+      });
+      expect(listRules.status).toBe(200);
+      expect(listRules.data).toHaveLength(1);
+      expect(listRules.data[0].match_ref).toEqual(`refs/heads/${branch}`);
+
+
+      setInput('action', 'notify');
+      await runAction();
+      expect(process.exitCode).toBeFalsy();
+
+      setInput('action', 'delete');
+      await runAction();
+      expect(process.exitCode).toBeFalsy();
+    } catch (e) {
+      console.log(e);
+      throw new Error('failed');
+    }
+  });
+
+
+  test('succeeds without automation rule', async () => {
+    try {
+      setInput('create-automation-rule', 'false');
+      setInput('action', 'create');
+      await runAction();
+      expect(process.exitCode).toBeFalsy();
+
+      // TODO Get from output instead
+      const envId = branchNameToEnvId('dev', branch);
+
+      const listRules = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesGet({
+        orgId,
+        appId,
+        envId,
+      });
+      expect(listRules.status).toBe(200);
+      expect(listRules.data).toEqual([]);
 
       setInput('action', 'notify');
       await runAction();
