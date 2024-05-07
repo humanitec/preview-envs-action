@@ -1,6 +1,6 @@
 # Dynamic Preview Environments using Humanitec
 
-This GitHub action allows you to dynamically create and deleted preview environments using the Humanitec Platform Orchestrator.
+This GitHub Action allows you to dynamically create and deleted preview environments using the Humanitec Platform Orchestrator.
 
 ## Inputs
 
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: humanitec/preview-envs-action@v1
+      - uses: humanitec/preview-envs-action@v2
         with:
           humanitec-token: ${{ secrets.HUMANITEC_TOKEN }}
           humanitec-org: my-org
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: humanitec/preview-envs-action@v1
+      - uses: humanitec/preview-envs-action@v2
         with:
           humanitec-token: ${{ secrets.HUMANITEC_TOKEN }}
           humanitec-org: my-org
@@ -79,10 +79,10 @@ jobs:
 ```
 ### Notify Humanitec
 
-Add the following snipped after your CI step notifying Humanitec about the newly pushed image (commonly the build-push-to-humanitec step):
+Add the following snipped after your CI step to notify Humanitec about the newly pushed image (commonly the build-push-to-humanitec step):
 
 ```yaml
-- uses: humanitec/preview-envs-action@v1
+- uses: humanitec/preview-envs-action@v2
   with:
     humanitec-org: my-org
     humanitec-app: my-app
@@ -98,10 +98,10 @@ All actions above return the output parameter `environment-url`. If you just wan
 ```yaml
 - name: Get Preview Environment
   id: preview-env
-  uses: humanitec/preview-envs-action@mst-wal-7302-test-on-pr
+  uses: humanitec/preview-envs-action@v2
   with:
-    humanitec-org: humanitec-labs
-    humanitec-app: humanitec-frontend
+    humanitec-org: my-org
+    humanitec-app: my-app
     action: get-environment-url
     github-token: ${{ secrets.GITHUB_TOKEN }}
     environment-url-template: "https://{{envId}}-app.humanitec.io"
@@ -112,7 +112,7 @@ All actions above return the output parameter `environment-url`. If you just wan
 
 ## Development
 
-Running the tests requires an Humanitec account. Once this is created, the following environment variables need to be configure:
+Running the tests requires an Humanitec account. Once this is created, the following environment variables need to be configured:
 
 * `HUMANITEC_ORG`
 * `HUMANITEC_TOKEN`

@@ -38,7 +38,7 @@ outputs:
   humanitec-env:
     description: 'The id of the created environment'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
 branding:
   icon: 'check-square'
