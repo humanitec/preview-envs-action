@@ -77,9 +77,9 @@ jobs:
           action: delete
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
-### Notify Humanitec
+### Notify GitHub Environment
 
-Add the following snipped after your CI step to notify Humanitec about the newly pushed image (commonly the build-push-to-humanitec step):
+Add the following snipped after your CI step (commonly the [build-push-to-humanitec](https://github.com/humanitec/build-push-to-humanitec) step) to notify the underlying [GitHub Environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) about the newly pushed image. When the `environment-url-template` parameter is provided, GitHub will display a "View Deployment" button for convenient access to the preview environment using the generated URL.
 
 ```yaml
 - uses: humanitec/preview-envs-action@v2
