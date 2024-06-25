@@ -1,18 +1,18 @@
-import * as core from '@actions/core';
-import {runAction} from './action';
-import axios from 'axios';
+import * as core from "@actions/core";
+import { runAction } from "./action.js";
+import { ResponseError } from "@humanitec/autogen";
 
-runAction().catch((e) => {
-  core.error('Action failed');
+runAction().catch(async (e) => {
+  core.error("Action failed");
 
   core.setFailed(`${e.name} ${e.message}`);
-  if (axios.isAxiosError(e)) {
-    if (e.config) {
-      core.error(`method: ${e.config.method}`);
-      core.error(`request: ${e.config.url}`);
-    }
-    if (e.response) {
-      core.error(`response: ${JSON.stringify(e.response.data)}`);
+
+  if (e instanceof ResponseError) {
+    const { response } = e;
+    core.error(`API response:`);
+    core.error(`status: ${response.status}`);
+    if (response.body && response.bodyUsed) {
+      core.error(`response: ${await response.text()}`);
     }
   }
 });

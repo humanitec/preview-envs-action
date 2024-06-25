@@ -1,76 +1,74 @@
-import {getOctokit, context} from '@actions/github';
-import {getInput, setOutput, info, getBooleanInput} from '@actions/core';
-import {render} from 'mustache';
+import { getOctokit, context } from "@actions/github";
+import { getInput, setOutput, info, getBooleanInput } from "@actions/core";
+import Mustache from "mustache";
 
-import {branchNameToEnvId} from './utils';
-import {createApiClient, HumanitecClient} from './humanitec';
+import { branchNameToEnvId } from "./utils.js";
+import { createApiClient, HumanitecClient } from "./humanitec/index.js";
+import { ResponseError } from "@humanitec/autogen";
 
-type octokit = ReturnType<typeof getOctokit>
+type octokit = ReturnType<typeof getOctokit>;
 
 async function createEnvironment(input: ActionInput): Promise<void> {
-  const {orgId, appId, envId, context, octokit, humClient, branchName, environmentUrl, webAppUrl} = input;
+  const {
+    orgId,
+    appId,
+    envId,
+    context,
+    octokit,
+    humClient,
+    branchName,
+    environmentUrl,
+    webAppUrl,
+  } = input;
 
-  const baseEnvId = getInput('base-env') || 'development';
-  const createAutomationRule = getBooleanInput('create-automation-rule');
-  console.log('createAutomationRule', createAutomationRule);
-  const imageName = (process.env.GITHUB_REPOSITORY || '').replace(/.*\//, '');
-  const image = getInput('image') || `registry.humanitec.io/${orgId}/${imageName}`;
+  const baseEnvId = getInput("base-env") || "development";
+  const createAutomationRule = getBooleanInput("create-automation-rule");
+  console.log("createAutomationRule", createAutomationRule);
+  const imageName = (process.env.GITHUB_REPOSITORY || "").replace(/.*\//, "");
+  const image =
+    getInput("image") || `registry.humanitec.io/${orgId}/${imageName}`;
 
-
-  const baseEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdGet({
+  const baseEnv = await humClient.getEnvironment({
     orgId,
     appId,
     envId: baseEnvId,
   });
-  if (baseEnvRes.status != 200) {
-    throw new Error(`Unexpected response fetching env: ${baseEnvRes.status}, ${baseEnvRes.data}`);
-  }
-
-  const baseEnv = baseEnvRes.data;
 
   if (!baseEnv.last_deploy) {
     throw new Error(`Environment ${baseEnv.id} has never been deployed`);
   }
 
-  const createEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsPost(
-    {
-      orgId,
-      appId,
-      environmentDefinitionRequest: {
-        from_deploy_id: baseEnv.last_deploy.id,
-        id: envId,
-        name: envId,
-        type: baseEnv.type,
-      },
+  const createEnv = await humClient.createEnvironment({
+    orgId,
+    appId,
+    EnvironmentDefinitionRequest: {
+      from_deploy_id: baseEnv.last_deploy.id,
+      id: envId,
+      name: envId,
+      type: baseEnv.type,
     },
-  );
-  if (createEnvRes.status != 201) {
-    throw new Error(`Unexpected response creating env: ${baseEnvRes.status}, ${baseEnvRes.data}`);
-  }
+  });
 
-  console.log(`Created environment: ${envId}, ${environmentUrl}`);
-
+  console.log(`Created environment: ${createEnv.id}, ${environmentUrl}`);
 
   if (createAutomationRule) {
-    const matchRef =`refs/heads/${branchName}`;
-    const createRuleRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesPost({
+    const matchRef = `refs/heads/${branchName}`;
+    const createRule = await humClient.createAutomationRule({
       orgId,
       appId,
       envId,
-      automationRuleRequest: {
+      AutomationRuleRequest: {
         active: true,
         artefacts_filter: [image],
-        type: 'update',
+        type: "update",
         match_ref: matchRef,
       },
     });
-    if (createRuleRes.status != 201) {
-      throw new Error(`Unexpected response creating rule: ${baseEnvRes.status}, ${baseEnvRes.data}`);
-    }
 
-    console.log(`Created auto-deployment rule for ${matchRef} and image ${image}`);
+    console.log(
+      `Created auto-deployment rule for ${createRule.match_ref} and image ${createRule.artefacts_filter[0]}`,
+    );
   }
-
 
   if (!octokit) {
     return;
@@ -86,7 +84,7 @@ async function createEnvironment(input: ActionInput): Promise<void> {
     required_contexts: [],
   });
 
-  if (!('id' in deployment.data)) {
+  if (!("id" in deployment.data)) {
     throw new Error(`Creating deployment failed ${deployment.data.message}`);
   }
 
@@ -99,7 +97,7 @@ async function createEnvironment(input: ActionInput): Promise<void> {
     deployment_id: deploymentId,
     ref: branchName,
     auto_merge: false,
-    state: 'pending',
+    state: "pending",
     environment_url: environmentUrl,
     log_url: webAppUrl,
   });
@@ -120,7 +118,8 @@ async function findLatestDeployment(octokit: octokit, envId: string) {
 }
 
 async function notifyDeploy(input: NotifyInput): Promise<void> {
-  const {envId, context, octokit, environmentUrl, webAppUrl, branchName} = input;
+  const { envId, context, octokit, environmentUrl, webAppUrl, branchName } =
+    input;
 
   if (!octokit) {
     return;
@@ -128,7 +127,7 @@ async function notifyDeploy(input: NotifyInput): Promise<void> {
 
   const latestDeployment = await findLatestDeployment(octokit, envId);
   if (!latestDeployment) {
-    console.log('No deployment found');
+    console.log("No deployment found");
     return;
   }
 
@@ -136,7 +135,9 @@ async function notifyDeploy(input: NotifyInput): Promise<void> {
 
   const currentSHA = process.env.GITHUB_SHA;
   if (latestDeployment.sha !== currentSHA) {
-    console.log(`Current deployment sha ${latestDeployment.sha} is not matching commit sha ${currentSHA}`);
+    console.log(
+      `Current deployment sha ${latestDeployment.sha} is not matching commit sha ${currentSHA}`,
+    );
     console.log(`Creating new deployment`);
     // Create another deployment as otherwise github marks the current one as outdated
     const deployment = await octokit.rest.repos.createDeployment({
@@ -149,7 +150,7 @@ async function notifyDeploy(input: NotifyInput): Promise<void> {
       required_contexts: [],
     });
 
-    if (!('id' in deployment.data)) {
+    if (!("id" in deployment.data)) {
       throw new Error(`Creating deployment failed ${deployment.data.message}`);
     }
 
@@ -162,20 +163,27 @@ async function notifyDeploy(input: NotifyInput): Promise<void> {
     owner: context.repo.owner,
     repo: context.repo.repo,
     deployment_id: deploymentId,
-    state: 'success',
+    state: "success",
     environment_url: environmentUrl,
     log_url: webAppUrl,
   });
 }
 
 async function deleteEnvironment(input: ActionInput): Promise<void> {
-  const {orgId, appId, envId, context, octokit, humClient} = input;
+  const { orgId, appId, envId, context, octokit, humClient } = input;
 
-  const delEnvRes = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdDelete({
-    orgId, appId, envId,
-  });
-  if (delEnvRes.status != 204 && delEnvRes.status != 404) {
-    throw new Error(`Unexpected response creating rule: ${delEnvRes.status}, ${delEnvRes.data}`);
+  try {
+    await humClient.deleteEnvironment({
+      orgId,
+      appId,
+      envId,
+    });
+  } catch (e) {
+    if (e instanceof ResponseError && e.response.status == 404) {
+      // Environment already deleted
+    } else {
+      throw e;
+    }
   }
 
   console.log(`Deleted environment: ${envId}`);
@@ -186,7 +194,7 @@ async function deleteEnvironment(input: ActionInput): Promise<void> {
 
   const latestDeployment = await findLatestDeployment(octokit, envId);
   if (!latestDeployment) {
-    console.log('No deployment found');
+    console.log("No deployment found");
     return;
   }
 
@@ -194,7 +202,7 @@ async function deleteEnvironment(input: ActionInput): Promise<void> {
     owner: context.repo.owner,
     repo: context.repo.repo,
     deployment_id: latestDeployment.id,
-    state: 'inactive',
+    state: "inactive",
   });
 }
 
@@ -206,20 +214,20 @@ interface ActionInput {
   octokit?: octokit;
   humClient: HumanitecClient;
   branchName: string;
-  environmentUrl: string
-  webAppUrl: string
+  environmentUrl: string;
+  webAppUrl: string;
 }
 
-type NotifyInput = Omit<ActionInput, 'humClient'>
+type NotifyInput = Omit<ActionInput, "humClient">;
 
 /**
  * Performs the GitHub action.
  */
 export async function runAction(): Promise<void> {
-  const orgId = getInput('humanitec-org', {required: true});
-  const appId = getInput('humanitec-app', {required: true});
-  const action = getInput('action', {required: true});
-  const ghToken = getInput('github-token');
+  const orgId = getInput("humanitec-org", { required: true });
+  const appId = getInput("humanitec-app", { required: true });
+  const action = getInput("action", { required: true });
+  const ghToken = getInput("github-token");
 
   let octokit;
   if (ghToken) {
@@ -228,40 +236,46 @@ export async function runAction(): Promise<void> {
 
   const branchName = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME;
   if (!branchName) {
-    throw new Error('No branch name found');
+    throw new Error("No branch name found");
   }
 
-  const envId = branchNameToEnvId('dev', branchName);
+  const envId = branchNameToEnvId("dev", branchName);
   const envPath = `/orgs/${orgId}/apps/${appId}/envs/${envId}`;
   const webAppUrl = `https://app.humanitec.io${envPath}`;
 
-  const environmentUrlTemplate = getInput('environment-url-template');
+  const environmentUrlTemplate = getInput("environment-url-template");
 
-  const templateParams = {envId, appId, orgId, branchName};
+  const templateParams = { envId, appId, orgId, branchName };
   let environmentUrl = webAppUrl;
   if (environmentUrlTemplate) {
-    environmentUrl = render(environmentUrlTemplate, templateParams);
+    environmentUrl = Mustache.render(environmentUrlTemplate, templateParams);
   }
-  info('Using environment: '+environmentUrl);
-  setOutput('environment-url', environmentUrl);
-  setOutput('humanitec-env', envId);
-  if (action == 'get-environment-url') {
+  info("Using environment: " + environmentUrl);
+  setOutput("environment-url", environmentUrl);
+  setOutput("humanitec-env", envId);
+  if (action == "get-environment-url") {
     return;
   }
 
-  const notifyParams: NotifyInput = {...templateParams, context, octokit, webAppUrl, environmentUrl};
-  if (action == 'notify') {
+  const notifyParams: NotifyInput = {
+    ...templateParams,
+    context,
+    octokit,
+    webAppUrl,
+    environmentUrl,
+  };
+  if (action == "notify") {
     return notifyDeploy(notifyParams);
   }
 
-  const token = getInput('humanitec-token', {required: true});
-  const apiHost = getInput('humanitec-api') || 'api.humanitec.io';
+  const token = getInput("humanitec-token", { required: true });
+  const apiHost = getInput("humanitec-api") || "api.humanitec.io";
   const humClient = createApiClient(apiHost, token);
 
-  const actionParams: ActionInput = {...notifyParams, humClient};
-  if (action == 'create') {
+  const actionParams: ActionInput = { ...notifyParams, humClient };
+  if (action == "create") {
     return createEnvironment(actionParams);
-  } else if (action == 'delete') {
+  } else if (action == "delete") {
     return deleteEnvironment(actionParams);
   } else {
     throw new Error(`Unknown action: ${action}`);

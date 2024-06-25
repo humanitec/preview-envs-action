@@ -1,12 +1,12 @@
-import {describe, expect, test, beforeEach, afterAll} from '@jest/globals';
-import {runAction} from './action';
-import {randomBytes} from 'crypto';
-import {createApiClient} from './humanitec';
-import {branchNameToEnvId} from './utils';
+import { describe, expect, test, beforeEach, afterAll } from "vitest";
+import { runAction } from "./action.js";
+import { randomBytes } from "crypto";
+import { createApiClient } from "./humanitec/index.js";
+import { branchNameToEnvId } from "./utils.js";
 
 // Emulate https://github.com/actions/toolkit/blob/819157bf8/packages/core/src/core.ts#L128
 const setInput = (name: string, value: string): void => {
-  process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] = value;
+  process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] = value;
 };
 
 const ensureEnv = (name: string): string => {
@@ -18,91 +18,87 @@ const ensureEnv = (name: string): string => {
   return val;
 };
 
-const token = ensureEnv('HUMANITEC_TOKEN');
-const orgId = ensureEnv('HUMANITEC_ORG');
-const appId = ensureEnv('HUMANITEC_APP');
+const token = ensureEnv("HUMANITEC_TOKEN");
+const orgId = ensureEnv("HUMANITEC_ORG");
+const appId = ensureEnv("HUMANITEC_APP");
 
-describe('action', () => {
+describe("action", () => {
   let branch: string;
   let humClient: ReturnType<typeof createApiClient>;
 
   beforeEach(async () => {
-    humClient = createApiClient('', token);
+    humClient = createApiClient("", token);
 
-    setInput('humanitec-token', token);
-    setInput('humanitec-org', orgId);
-    setInput('humanitec-app', appId);
+    setInput("humanitec-token", token);
+    setInput("humanitec-org", orgId);
+    setInput("humanitec-app", appId);
 
-    branch = randomBytes(10).toString('hex');
-    process.env['GITHUB_HEAD_REF'] = branch;
+    branch = randomBytes(10).toString("hex");
+    process.env["GITHUB_HEAD_REF"] = branch;
   });
 
   afterAll(async () => {
     // TODO delete all envs
   });
 
-  test('succeeds', async () => {
+  test("succeeds", async () => {
     try {
-      setInput('create-automation-rule', 'true');
-      setInput('action', 'create');
+      setInput("create-automation-rule", "true");
+      setInput("action", "create");
       await runAction();
       expect(process.exitCode).toBeFalsy();
 
       // TODO Get from output instead
-      const envId = branchNameToEnvId('dev', branch);
+      const envId = branchNameToEnvId("dev", branch);
 
-      const listRules = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesGet({
+      const listRulesRes = await humClient.listAutomationRules({
         orgId,
         appId,
         envId,
       });
-      expect(listRules.status).toBe(200);
-      expect(listRules.data).toHaveLength(1);
-      expect(listRules.data[0].match_ref).toEqual(`refs/heads/${branch}`);
+      expect(listRulesRes).toHaveLength(1);
+      expect(listRulesRes[0].match_ref).toEqual(`refs/heads/${branch}`);
 
-
-      setInput('action', 'notify');
+      setInput("action", "notify");
       await runAction();
       expect(process.exitCode).toBeFalsy();
 
-      setInput('action', 'delete');
+      setInput("action", "delete");
       await runAction();
       expect(process.exitCode).toBeFalsy();
     } catch (e) {
       console.log(e);
-      throw new Error('failed');
+      throw new Error("failed");
     }
   });
 
-
-  test('succeeds without automation rule', async () => {
+  test("succeeds without automation rule", async () => {
     try {
-      setInput('create-automation-rule', 'false');
-      setInput('action', 'create');
+      setInput("create-automation-rule", "false");
+      setInput("action", "create");
       await runAction();
       expect(process.exitCode).toBeFalsy();
 
       // TODO Get from output instead
-      const envId = branchNameToEnvId('dev', branch);
+      const envId = branchNameToEnvId("dev", branch);
 
-      const listRules = await humClient.orgsOrgIdAppsAppIdEnvsEnvIdRulesGet({
+      const listRulesRes = await humClient.listAutomationRules({
         orgId,
         appId,
         envId,
       });
-      expect(listRules.status).toBe(200);
-      expect(listRules.data).toEqual([]);
+      expect(listRulesRes).toEqual([]);
 
-      setInput('action', 'notify');
+      setInput("action", "notify");
       await runAction();
       expect(process.exitCode).toBeFalsy();
 
-      setInput('action', 'delete');
+      setInput("action", "delete");
       await runAction();
       expect(process.exitCode).toBeFalsy();
     } catch (e) {
       console.log(e);
-      throw new Error('failed');
+      throw new Error("failed");
     }
   });
 });
