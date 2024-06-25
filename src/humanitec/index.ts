@@ -1,11 +1,11 @@
-import {APIConfig, apiConfig, PublicApi} from '@humanitec/autogen';
+import { APIConfig, apiConfig, PublicApi } from "@humanitec/autogen";
 
-export type HumanitecClient = PublicApi
+export type HumanitecClient = PublicApi;
 
 export const createApiClient = (basePath: string, token: string): PublicApi => {
   const clientConfig: APIConfig = {
     token,
-    internalApp: 'preview-envs-action/latest',
+    internalApp: "preview-envs-action/latest",
   };
 
   if (basePath) {
