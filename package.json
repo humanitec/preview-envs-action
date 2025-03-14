@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.10.1",
-    "@actions/github": "^5.1.1",
+    "@actions/github": "^6.0.0",
     "@humanitec/autogen": "^0.0.11",
     "mustache": "^4.2.0"
   },
