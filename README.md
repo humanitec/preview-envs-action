@@ -112,7 +112,9 @@ All actions above return the output parameter `environment-url`. If you just wan
 
 ## Development
 
-Running the tests requires an Humanitec account. Once this is created, the following environment variables need to be configured:
+This action requires Node.js 24.x.
+
+Running the tests requires a Humanitec account. Once this is created, the following environment variables need to be configured:
 
 * `HUMANITEC_ORG`
 * `HUMANITEC_TOKEN`
