@@ -12,6 +12,9 @@
   "sideEffects": false,
   "author": "support@humanitec.com",
   "license": "ISC",
+  "engines": {
+    "node": ">=24"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tsconfig/node24": "^24.0.0",
