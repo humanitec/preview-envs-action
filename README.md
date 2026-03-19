@@ -112,7 +112,7 @@ All actions above return the output parameter `environment-url`. If you just wan
 
 ## Development
 
-This action requires Node.js 24.x.
+For local development and running the build/tests of this action, you need Node.js 24.x installed. When used in a workflow, the action runs on the Node.js 24 runtime provided by GitHub Actions; users of the action do not need Node.js installed themselves.
 
 Running the tests requires a Humanitec account. Once this is created, the following environment variables need to be configured:
 
